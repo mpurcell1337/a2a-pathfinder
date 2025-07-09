@@ -1,13 +1,15 @@
 import os
-import openai
+from openai import OpenAI
 from datetime import datetime
+from dotenv import load_dotenv
 
 # Set your OpenAI API key
-
-openai.api_key = os.getenv("OPENAI_SECRET_KEY")
+# load the .env file
+load_dotenv()
+client = OpenAI(api_key=os.getenv("OPENAI_SECRET_KEY"))
 
 # Load the lead agent prompt from a markdown file (i.e. manager.md)
-with open("prompts/manager.md", "r") as f:
+with open("./prompts/manager.md", "r") as f:
     lead_agent = f.read()
 
 # Replace the placeholder with today's date
@@ -30,14 +32,12 @@ messages = [
 ]
 
 # First API call to initiate the plan
-response = openai.ChatCompletion.create(
-    model="gpt-4",
-    messages=messages,
-    temperature=0.7
-)
+response = client.chat.completions.create(model="gpt-4",
+messages=messages,
+temperature=0.7)
 
 # Print assistant's initial strategic plan
-assistant_reply = response['choices'][0]['message']['content']
+assistant_reply = response.choices[0].message.content
 print("Assistant (Strategic Plan):\n", assistant_reply)
 messages.append({"role": "assistant", "content": assistant_reply})
 
