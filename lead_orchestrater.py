@@ -42,32 +42,32 @@ print("Assistant (Strategic Plan):\n", assistant_reply)
 messages.append({"role": "assistant", "content": assistant_reply})
 
 # Add a follow-up message to simulate subagent responses
-# followup = "Please simulate the subagent responses."
-# messages.append({"role": "user", "content": followup})
+followup = "Please simulate the subagent responses."
+messages.append({"role": "user", "content": followup})
 
-# # Second API call
-# response = openai.ChatCompletion.create(
-#     model="gpt-4",
-#     messages=messages,
-#     temperature=0.7
-# )
+# Second API call
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=messages,
+    temperature=0.7
+)
 
-# # Print simulated subagent results
-# assistant_reply = response['choices'][0]['message']['content']
-# print("\nAssistant (Subagent Reports):\n", assistant_reply)
-# messages.append({"role": "assistant", "content": assistant_reply})
+# Print simulated subagent results
+assistant_reply = response.choices[0].message.content
+print("\nAssistant (Subagent Reports):\n", assistant_reply)
+messages.append({"role": "assistant", "content": assistant_reply})
 
 # # Final user request to synthesize
-# final_user_request = "Synthesize all of that into a strategic executive summary."
-# messages.append({"role": "user", "content": final_user_request})
+final_user_request = "Synthesize all of that into a strategic executive summary."
+messages.append({"role": "user", "content": final_user_request})
 
 # # Third API call
-# response = openai.ChatCompletion.create(
-#     model="gpt-4",
-#     messages=messages,
-#     temperature=0.7
-# )
+response = client.chat.completions.create(
+    model="gpt-4",
+    messages=messages,
+    temperature=0.7
+)
 
-# # Print the executive summary
-# assistant_reply = response['choices'][0]['message']['content']
-# print("\nAssistant (Executive Summary):\n", assistant_reply)
+# Print the executive summary
+assistant_reply = response.choices[0].message.content
+print("\nAssistant (Executive Summary):\n", assistant_reply)
