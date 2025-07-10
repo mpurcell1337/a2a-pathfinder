@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("./")
+
 """
 Search utility for AI plans stored in Elasticsearch.
 This script demonstrates how to search through stored plans using semantic similarity.
@@ -78,3 +81,8 @@ def main():
 
 if __name__ == "__main__":
     main() 
+
+# Example usage:
+# python3 ./scripts/search_plans.py --query "marketing" --limit 3
+# python3 ./scripts/search_plans.py --list
+# python3 ./scripts/search_plans.py --id 123

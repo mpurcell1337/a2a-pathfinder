@@ -8,7 +8,7 @@ import json
 class ElasticsearchClient:
     def __init__(self, host: str = "localhost", port: int = 9200):
         """Initialize Elasticsearch client with sentence transformer model."""
-        self.es = Elasticsearch([{'host': host, 'port': port}])
+        self.es = Elasticsearch(f"http://{host}:{port}")
         self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight model for embeddings
         self.index_name = "ai_plans"
         
@@ -38,7 +38,7 @@ class ElasticsearchClient:
         }
         
         if not self.es.indices.exists(index=self.index_name):
-            self.es.indices.create(index=self.index_name, body=mapping)
+            self.es.indices.create(index=self.index_name, mappings=mapping["mappings"], settings=mapping["settings"])
             print(f"Created index: {self.index_name}")
         else:
             print(f"Index {self.index_name} already exists")
@@ -75,7 +75,7 @@ class ElasticsearchClient:
         }
         
         # Store in Elasticsearch
-        response = self.es.index(index=self.index_name, body=doc)
+        response = self.es.index(index=self.index_name, document=doc)
         doc_id = response['_id']
         print(f"Stored plan with ID: {doc_id}")
         return doc_id
@@ -100,7 +100,7 @@ class ElasticsearchClient:
             "size": size
         }
         
-        response = self.es.search(index=self.index_name, body=search_body)
+        response = self.es.search(index=self.index_name, query=search_body["query"], size=size)
         
         results = []
         for hit in response['hits']['hits']:
@@ -134,7 +134,7 @@ class ElasticsearchClient:
             "size": size
         }
         
-        response = self.es.search(index=self.index_name, body=search_body)
+        response = self.es.search(index=self.index_name, query=search_body["query"], sort=search_body["sort"], size=size)
         
         results = []
         for hit in response['hits']['hits']:

@@ -1,4 +1,7 @@
 #!/usr/bin/env python3
+import sys
+sys.path.append("./")
+
 """
 Example script demonstrating Elasticsearch search functionality.
 This shows how to programmatically search through stored AI plans.
