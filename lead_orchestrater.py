@@ -160,10 +160,10 @@ print(f"- outputs/subagent_reports.md")
 print(f"- outputs/executive_summary.md")
 print(f"- outputs/complete_design_output.md")
 
-# Store the complete plan in Elasticsearch with embeddings
-print("\nStoring plan in Elasticsearch...")
+# Store the complete plan in Elasticsearch with individual snippet embeddings
+print("\nStoring plan with snippets in Elasticsearch...")
 try:
-    plan_id = es_client.store_plan(
+    plan_id = es_client.store_plan_with_snippets(
         user_query=ORGANIZATION_QUERY,
         strategic_plan=strategic_plan,
         subagent_reports=subagent_reports,
@@ -171,8 +171,9 @@ try:
         plan_type=ORGANIZATION_NAME
     )
     print(f"✅ Plan stored in Elasticsearch with ID: {plan_id}")
-    print(f"🔍 You can search this plan at: http://localhost:5601 (Kibana)")
+    print(f"🔍 You can search snippets at: http://localhost:5601 (Kibana)")
     print(f"📊 Elasticsearch endpoint: http://localhost:9200")
+    print(f"📝 Individual snippets are now searchable for granular retrieval")
 except Exception as e:
     print(f"❌ Error storing plan in Elasticsearch: {e}")
     print("Make sure Elasticsearch is running with: docker-compose up -d")

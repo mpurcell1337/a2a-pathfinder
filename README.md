@@ -68,9 +68,40 @@ python search_plans.py --query "revenue model" --limit 10
 ### Technical Details
 
 - **Embedding Model**: `all-MiniLM-L6-v2` (384 dimensions, lightweight)
-- **Index Name**: `ai_plans`
+- **Index Names**: `ai_plans` (complete plans), `ai_snippets` (individual snippets)
 - **Vector Search**: Uses cosine similarity for semantic matching
 - **Storage**: Complete plans with strategic plans, subagent reports, and executive summaries
+- **Snippitization**: Individual sub-agent outputs and orchestration outputs stored as searchable snippets
+
+## Dense Vector Encoding and Snippitization
+
+The system now supports granular search and retrieval of individual sub-agent outputs and orchestration outputs through dense vector encoding.
+
+### Snippet Search Features
+
+- **Granular Search**: Search specific sub-agent outputs or orchestration outputs
+- **Semantic Retrieval**: Find relevant content using semantic similarity
+- **Filtered Search**: Filter by snippet type, plan type, and other metadata
+- **Advanced Chunking**: Semantic boundary detection with overlapping chunks
+
+### Snippet Types
+
+- **`subagent_output`** - Individual sub-agent research results
+- **`strategic_plan`** - Strategic planning content
+- **`executive_summary`** - Executive summary content
+- **`enhanced_strategic_plan`** - Advanced chunked strategic planning content
+
+### Snippet Search Usage
+
+```bash
+# Search subagent outputs
+python scripts/snippet_search.py
+
+# Advanced snippitization demo
+python scripts/advanced_snippitization.py
+```
+
+For detailed documentation, see [SNIPPITIZATION.md](SNIPPITIZATION.md).
 
 ### Example Search Queries
 
