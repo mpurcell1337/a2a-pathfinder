@@ -1,5 +1,12 @@
 # A2A Pathfinder
 
+## UV
+- To enter the virtual environment associated with this project:
+    - `source .venv/bin/activate`
+- To add a new dependency:
+    - `uv add elasicsearch`
+    - If no package satisfies the requirement:
+        - `uv pip install sentence-transformers`
 
 ## Citations / Source
 ### Anthropic
