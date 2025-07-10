@@ -173,7 +173,7 @@ try:
     print(f"✅ Plan stored in Elasticsearch with ID: {plan_id}")
     print(f"🔍 You can search chunking at: http://localhost:5601 (Kibana)")
     print(f"📊 Elasticsearch endpoint: http://localhost:9200")
-    print(f"📝 Individual chunking are now searchable for granular retrieval")
+    print(f"📝 Individual chunks now searchable for retrieval")
 except Exception as e:
     print(f"❌ Error storing plan in Elasticsearch: {e}")
     print("Make sure Elasticsearch is running with: docker-compose up -d")

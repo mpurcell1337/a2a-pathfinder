@@ -82,6 +82,25 @@ class ElasticsearchClient:
         """Generate embedding for given text."""
         return self.model.encode(text).tolist()
     
+    def _categorize_task(self, task: str) -> str:
+        """Categorize the task based on keywords."""
+        task_lower = task.lower()
+        
+        if any(word in task_lower for word in ['market', 'competition', 'industry']):
+            return "market_research"
+        elif any(word in task_lower for word in ['technology', 'tech', 'infrastructure']):
+            return "technology_research"
+        elif any(word in task_lower for word in ['financial', 'revenue', 'cost', 'budget']):
+            return "financial_analysis"
+        elif any(word in task_lower for word in ['legal', 'regulatory', 'compliance']):
+            return "legal_research"
+        elif any(word in task_lower for word in ['marketing', 'brand', 'promotion']):
+            return "marketing_research"
+        elif any(word in task_lower for word in ['team', 'hiring', 'organization']):
+            return "organizational_research"
+        else:
+            return "general_research"
+    
     def store_snippet(self, 
                      plan_id: str,
                      content: str,
@@ -153,7 +172,16 @@ class ElasticsearchClient:
             snippet_type="strategic_plan",
             user_query=user_query,
             plan_type=plan_type,
-            metadata={"section": "strategic_planning"}
+            metadata={
+                "section": "strategic_planning",
+                "agent_level": "main_agent",
+                "content_type": "strategic_plan",
+                "word_count": len(strategic_plan.split()),
+                "character_count": len(strategic_plan),
+                "has_headers": "##" in strategic_plan,
+                "planning_phase": "initial_strategy",
+                "agent_role": "strategic_planner"
+            }
         )
         print(f"  - Stored strategic plan chunk")
         
@@ -180,7 +208,18 @@ class ElasticsearchClient:
                         plan_type=plan_type,
                         subagent_id=f"subagent_{i}",
                         task_description=task,
-                        metadata={"subagent_number": i, "section": "research"}
+                        metadata={
+                            "subagent_number": i,
+                            "section": "research",
+                            "agent_level": "subagent",
+                            "content_type": "subagent_output",
+                            "word_count": len(content.split()),
+                            "character_count": len(content),
+                            "has_headers": "##" in content,
+                            "planning_phase": "research_phase",
+                            "agent_role": "research_specialist",
+                            "task_category": self._categorize_task(task)
+                        }
                     )
                     print(f"  - Stored subagent {i} chunk")
         
@@ -191,7 +230,16 @@ class ElasticsearchClient:
             snippet_type="executive_summary",
             user_query=user_query,
             plan_type=plan_type,
-            metadata={"section": "synthesis"}
+            metadata={
+                "section": "synthesis",
+                "agent_level": "main_agent",
+                "content_type": "executive_summary",
+                "word_count": len(executive_summary.split()),
+                "character_count": len(executive_summary),
+                "has_headers": "##" in executive_summary,
+                "planning_phase": "final_synthesis",
+                "agent_role": "executive_synthesizer"
+            }
         )
         print(f"  - Stored executive summary chunk")
         
@@ -256,7 +304,8 @@ class ElasticsearchClient:
                 'task_description': source.get('task_description'),
                 'user_query': source['user_query'],
                 'plan_type': source['plan_type'],
-                'created_at': source['created_at']
+                'created_at': source['created_at'],
+                'metadata': source.get('metadata', {})
             })
         
         return results
