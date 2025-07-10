@@ -3,10 +3,15 @@ from openai import OpenAI
 from datetime import datetime
 from dotenv import load_dotenv
 from subagent import run_subagent
+from utils.elasticsearch_client import ElasticsearchClient
 
 # Set your OpenAI API key
 load_dotenv()
 client = OpenAI(api_key=os.getenv("OPENAI_SECRET_KEY"))
+
+# Initialize Elasticsearch client
+es_client = ElasticsearchClient()
+es_client.create_index()
 
 # Load the lead agent prompt from a markdown file (i.e. manager.md)
 with open("./prompts/manager-art.md", "r") as f:
@@ -16,7 +21,8 @@ with open("./prompts/manager-art.md", "r") as f:
 lead_agent = lead_agent.replace("{{.CurrentDate}}", datetime.today().strftime("%Y-%m-%d"))
 
 # Define the user's query
-user_query = "We are going to create an AI art company that will be used to create massive amounts of art. We need to create a plan to do this."
+ORGANIZATION_NAME = "AI Art Company"
+ORGANIZATION_QUERY = f"We are going to create an {ORGANIZATION_NAME} that will be used to create massive amounts of art. We need to create a plan to do this."
 
 # Initialize the conversation
 messages = [
@@ -26,7 +32,7 @@ messages = [
     },
     {
         "role": "user",
-        "content": user_query
+        "content": ORGANIZATION_QUERY
     }
 ]
 
@@ -90,7 +96,7 @@ for i, task in enumerate(tasks[:3], 1):  # Limit to 3 tasks for efficiency
     print(f"\nRunning Subagent {i}: {task[:50]}...")
     
     context = f"""
-    This is part of a research project to answer the user's query: "{user_query}"
+    This is part of a research project to answer the user's query: "{ORGANIZATION_QUERY}"
 
     The strategic plan identified this as a key research area that needs investigation.
     """
@@ -145,7 +151,7 @@ with open("outputs/complete_design_output.md", "w") as f:
 
 ---
 *Generated on: {datetime.today().strftime("%Y-%m-%d %H:%M:%S")}*
-*User Query: {user_query}*
+*User Query: {ORGANIZATION_QUERY}*
 """)
 
 print(f"\nOutputs saved to:")
@@ -153,3 +159,20 @@ print(f"- outputs/strategic_plan.md")
 print(f"- outputs/subagent_reports.md") 
 print(f"- outputs/executive_summary.md")
 print(f"- outputs/complete_design_output.md")
+
+# Store the complete plan in Elasticsearch with embeddings
+print("\nStoring plan in Elasticsearch...")
+try:
+    plan_id = es_client.store_plan(
+        user_query=ORGANIZATION_QUERY,
+        strategic_plan=strategic_plan,
+        subagent_reports=subagent_reports,
+        executive_summary=executive_summary,
+        plan_type=ORGANIZATION_NAME
+    )
+    print(f"✅ Plan stored in Elasticsearch with ID: {plan_id}")
+    print(f"🔍 You can search this plan at: http://localhost:5601 (Kibana)")
+    print(f"📊 Elasticsearch endpoint: http://localhost:9200")
+except Exception as e:
+    print(f"❌ Error storing plan in Elasticsearch: {e}")
+    print("Make sure Elasticsearch is running with: docker-compose up -d")
