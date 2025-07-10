@@ -12,8 +12,8 @@ The system now supports granular search and retrieval of individual sub-agent ou
 
 The system uses two Elasticsearch indices:
 
-1. **`ai_plans`** - Stores complete plans with combined embeddings
-2. **`ai_snippets`** - Stores individual snippets with their own embeddings
+1. **`ai_agents`** - Stores complete plans with combined embeddings at the agent leve.
+2. **`ai_subagents`** - Stores individual chunks of plans with their own embeddings at the subagent level.
 
 ### Snippet Types
 
@@ -214,12 +214,12 @@ self.model = SentenceTransformer('your-model-name')
 
 ```python
 # Check if indices exist
-es_client.es.indices.exists(index="ai_snippets")
+es_client.es.indices.exists(index="ai_subagents")
 
 # List all snippets
 snippets = es_client.search_snippets("", size=100)
 
 # Get snippet count
-count = es_client.es.count(index="ai_snippets")
+count = es_client.es.count(index="ai_subagents")
 print(f"Total snippets: {count['count']}")
 ``` 

@@ -11,8 +11,8 @@ class ElasticsearchClient:
         """Initialize Elasticsearch client with sentence transformer model."""
         self.es = Elasticsearch(f"http://{host}:{port}")
         self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight model for embeddings
-        self.index_name = "ai_plans"
-        self.snippets_index_name = "ai_snippets"
+        self.index_name = "ai_agents"
+        self.snippets_index_name = "ai_subagents"
         
     def create_index(self):
         """Create the index with proper mapping for embeddings."""

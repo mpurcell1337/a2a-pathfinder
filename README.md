@@ -68,7 +68,7 @@ python search_plans.py --query "revenue model" --limit 10
 ### Technical Details
 
 - **Embedding Model**: `all-MiniLM-L6-v2` (384 dimensions, lightweight)
-- **Index Names**: `ai_plans` (complete plans), `ai_snippets` (individual snippets)
+- **Index Names**: `ai_agents` (complete plans), `ai_subagents` (individual snippets)
 - **Vector Search**: Uses cosine similarity for semantic matching
 - **Storage**: Complete plans with strategic plans, subagent reports, and executive summaries
 - **Snippitization**: Individual sub-agent outputs and orchestration outputs stored as searchable snippets
