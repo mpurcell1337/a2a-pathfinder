@@ -117,13 +117,13 @@ class ElasticsearchClient:
         print(f"Stored snippet with ID: {snippet_id}")
         return snippet_id
     
-    def store_plan_with_snippets(self, 
+    def store_plan_with_chunking(self, 
                                 user_query: str,
                                 strategic_plan: str,
                                 subagent_reports: str,
                                 executive_summary: str,
                                 plan_type: str = "ai_art_company") -> str:
-        """Store a complete plan with individual snippet embeddings."""
+        """Store a complete plan with individual chunking embeddings."""
         
         # First, store the main plan
         combined_content = f"{strategic_plan}\n\n{subagent_reports}\n\n{executive_summary}"
@@ -146,7 +146,7 @@ class ElasticsearchClient:
         plan_id = response['_id']
         print(f"Stored main plan with ID: {plan_id}")
         
-        # Store strategic plan as snippet
+        # Store strategic plan as chunk
         self.store_snippet(
             plan_id=plan_id,
             content=strategic_plan,
@@ -155,6 +155,7 @@ class ElasticsearchClient:
             plan_type=plan_type,
             metadata={"section": "strategic_planning"}
         )
+        print(f"  - Stored strategic plan chunk")
         
         # Parse and store individual subagent outputs
         # This is a simplified parser - you might want more sophisticated parsing
@@ -181,8 +182,9 @@ class ElasticsearchClient:
                         task_description=task,
                         metadata={"subagent_number": i, "section": "research"}
                     )
+                    print(f"  - Stored subagent {i} chunk")
         
-        # Store executive summary as snippet
+        # Store executive summary as chunk
         self.store_snippet(
             plan_id=plan_id,
             content=executive_summary,
@@ -191,6 +193,7 @@ class ElasticsearchClient:
             plan_type=plan_type,
             metadata={"section": "synthesis"}
         )
+        print(f"  - Stored executive summary chunk")
         
         return plan_id
     

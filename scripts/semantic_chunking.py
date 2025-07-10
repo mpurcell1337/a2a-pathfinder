@@ -136,168 +136,168 @@ class AdvancedSnippitizer:
         
         return metadata
 
-def enhance_chunking():
-    """Demonstrate enhanced chunking features."""
-    
-    es_client = ElasticsearchClient()
-    snippitizer = AdvancedSnippitizer(chunk_size=800, overlap=150)
-    
-    print("🔧 Advanced Chunking Demo")
-    print("=" * 50)
-    
-    # Get existing plans
-    plans = es_client.list_all_plans()
-    if not plans:
-        print("❌ No plans found. Please run the lead orchestrator first.")
-        return
-    
-    # Get the most recent plan
-    latest_plan = plans[0]
-    plan_id = latest_plan['id']
-    
-    # Get the full plan content
-    plan_data = es_client.get_plan_by_id(plan_id)
-    if not plan_data:
-        print("❌ Could not retrieve plan data.")
-        return
-    
-    print(f"📋 Processing plan: {latest_plan['title']}")
-    
-    # Process strategic plan with advanced chunking
-    strategic_plan = plan_data['strategic_plan']
-    print(f"\n📝 Strategic Plan ({len(strategic_plan)} characters)")
-    
-    # Create semantic chunks
-    semantic_chunks = snippitizer.split_by_semantic_boundaries(strategic_plan)
-    print(f"  - Created {len(semantic_chunks)} semantic chunks")
-    
-    # Create overlapping chunks for longer sections
-    overlapping_chunks = []
-    for chunk in semantic_chunks:
-        if len(chunk) > snippitizer.chunk_size:
-            sub_chunks = snippitizer.create_overlapping_chunks(chunk)
-            overlapping_chunks.extend(sub_chunks)
-        else:
-            overlapping_chunks.append(chunk)
-    
-    print(f"  - Total chunks after overlap processing: {len(overlapping_chunks)}")
-    
-    # Store enhanced chunks as snippets
-    print("\n💾 Storing enhanced chunks as snippets...")
-    
-    for i, chunk in enumerate(overlapping_chunks):
-        if len(chunk.strip()) < 50:  # Skip very short chunks
-            continue
-            
-        metadata = snippitizer.extract_metadata(chunk)
+    def enhance_chunking():
+        """Demonstrate enhanced chunking features."""
         
-        # Store as enhanced snippet
-        snippet_id = es_client.store_snippet(
-            plan_id=plan_id,
-            content=chunk,
+        es_client = ElasticsearchClient()
+        snippitizer = AdvancedSnippitizer(chunk_size=800, overlap=150)
+        
+        print("🔧 Advanced Chunking Demo")
+        print("=" * 50)
+        
+        # Get existing plans
+        plans = es_client.list_all_plans()
+        if not plans:
+            print("❌ No plans found. Please run the lead orchestrator first.")
+            return
+        
+        # Get the most recent plan
+        latest_plan = plans[0]
+        plan_id = latest_plan['id']
+        
+        # Get the full plan content
+        plan_data = es_client.get_plan_by_id(plan_id)
+        if not plan_data:
+            print("❌ Could not retrieve plan data.")
+            return
+        
+        print(f"📋 Processing plan: {latest_plan['title']}")
+        
+        # Process strategic plan with advanced chunking
+        strategic_plan = plan_data['strategic_plan']
+        print(f"\n📝 Strategic Plan ({len(strategic_plan)} characters)")
+        
+        # Create semantic chunks
+        semantic_chunks = snippitizer.split_by_semantic_boundaries(strategic_plan)
+        print(f"  - Created {len(semantic_chunks)} semantic chunks")
+        
+        # Create overlapping chunks for longer sections
+        overlapping_chunks = []
+        for chunk in semantic_chunks:
+            if len(chunk) > snippitizer.chunk_size:
+                sub_chunks = snippitizer.create_overlapping_chunks(chunk)
+                overlapping_chunks.extend(sub_chunks)
+            else:
+                overlapping_chunks.append(chunk)
+        
+        print(f"  - Total chunks after overlap processing: {len(overlapping_chunks)}")
+        
+        # Store enhanced chunks as snippets
+        print("\n💾 Storing enhanced chunks as snippets...")
+        
+        for i, chunk in enumerate(overlapping_chunks):
+            if len(chunk.strip()) < 50:  # Skip very short chunks
+                continue
+                
+            metadata = snippitizer.extract_metadata(chunk)
+            
+            # Store as enhanced snippet
+            snippet_id = es_client.store_snippet(
+                plan_id=plan_id,
+                content=chunk,
+                snippet_type="enhanced_strategic_plan",
+                user_query=plan_data['user_query'],
+                plan_type=plan_data['plan_type'],
+                metadata={
+                    "chunk_index": i,
+                    "chunk_size": len(chunk),
+                    "headers": metadata['headers'],
+                    "key_phrases": metadata['key_phrases'][:5],  # Top 5
+                    "word_count": metadata['word_count'],
+                    "enhanced": True
+                }
+            )
+            
+            print(f"  - Stored chunk {i+1}: {len(chunk)} chars, {metadata['word_count']} words")
+        
+        print(f"\n✅ Enhanced chunking completed!")
+        print(f"📊 Created {len(overlapping_chunks)} searchable chunks")
+        
+        # Demonstrate search on enhanced chunks
+        print("\n🔍 Testing search on enhanced chunks...")
+        
+        enhanced_results = es_client.search_snippets(
+            query="business strategy implementation",
             snippet_type="enhanced_strategic_plan",
-            user_query=plan_data['user_query'],
-            plan_type=plan_data['plan_type'],
-            metadata={
-                "chunk_index": i,
-                "chunk_size": len(chunk),
-                "headers": metadata['headers'],
-                "key_phrases": metadata['key_phrases'][:5],  # Top 5
-                "word_count": metadata['word_count'],
-                "enhanced": True
-            }
+            size=3
         )
         
-        print(f"  - Stored chunk {i+1}: {len(chunk)} chars, {metadata['word_count']} words")
-    
-    print(f"\n✅ Enhanced chunking completed!")
-    print(f"📊 Created {len(overlapping_chunks)} searchable chunks")
-    
-    # Demonstrate search on enhanced chunks
-    print("\n🔍 Testing search on enhanced chunks...")
-    
-    enhanced_results = es_client.search_snippets(
-        query="business strategy implementation",
-        snippet_type="enhanced_strategic_plan",
-        size=3
-    )
-    
-    print(f"Found {len(enhanced_results)} relevant enhanced chunks:")
-    for i, result in enumerate(enhanced_results, 1):
-        print(f"\n{i}. Score: {result['score']:.3f}")
-        print(f"   Chunk size: {result['metadata'].get('chunk_size', 'N/A')} chars")
-        print(f"   Headers: {result['metadata'].get('headers', [])}")
-        print(f"   Content: {result['content'][:150]}...")
+        print(f"Found {len(enhanced_results)} relevant enhanced chunks:")
+        for i, result in enumerate(enhanced_results, 1):
+            print(f"\n{i}. Score: {result['score']:.3f}")
+            print(f"   Chunk size: {result['metadata'].get('chunk_size', 'N/A')} chars")
+            print(f"   Headers: {result['metadata'].get('headers', [])}")
+            print(f"   Content: {result['content'][:150]}...")
 
-def create_snippet_analytics():
-    """Create analytics about snippet usage and effectiveness."""
-    
-    es_client = ElasticsearchClient()
-    
-    print("\n📊 Snippet Analytics")
-    print("=" * 50)
-    
-    # Get all snippets
-    all_snippets = es_client.search_snippets("", size=100)  # Get all snippets
-    
-    if not all_snippets:
-        print("❌ No snippets found.")
-        return
-    
-    # Analyze snippet types
-    type_counts = {}
-    plan_type_counts = {}
-    content_lengths = []
-    
-    for snippet in all_snippets:
-        snippet_type = snippet['snippet_type']
-        plan_type = snippet['plan_type']
-        content_length = len(snippet['content'])
+    def create_snippet_analytics():
+        """Create analytics about snippet usage and effectiveness."""
         
-        type_counts[snippet_type] = type_counts.get(snippet_type, 0) + 1
-        plan_type_counts[plan_type] = plan_type_counts.get(plan_type, 0) + 1
-        content_lengths.append(content_length)
-    
-    print(f"📈 Total snippets: {len(all_snippets)}")
-    print(f"📊 Average content length: {sum(content_lengths) / len(content_lengths):.0f} characters")
-    
-    print("\n📋 Snippet types:")
-    for snippet_type, count in sorted(type_counts.items()):
-        print(f"  - {snippet_type}: {count} snippets")
-    
-    print("\n🏢 Plan types:")
-    for plan_type, count in sorted(plan_type_counts.items()):
-        print(f"  - {plan_type}: {count} snippets")
-    
-    # Show content length distribution
-    print("\n📏 Content length distribution:")
-    length_ranges = [
-        (0, 500, "Short (0-500 chars)"),
-        (500, 1000, "Medium (500-1000 chars)"),
-        (1000, 2000, "Long (1000-2000 chars)"),
-        (2000, float('inf'), "Very Long (2000+ chars)")
-    ]
-    
-    for min_len, max_len, label in length_ranges:
-        count = sum(1 for length in content_lengths if min_len <= length < max_len)
-        percentage = (count / len(content_lengths)) * 100
-        print(f"  - {label}: {count} snippets ({percentage:.1f}%)")
-
-if __name__ == "__main__":
-    try:
-        enhance_chunking()
-        create_snippet_analytics()
+        es_client = ElasticsearchClient()
         
-        print("\n" + "=" * 50)
-        print("✅ Advanced chunking demo completed!")
+        print("\n📊 Snippet Analytics")
         print("=" * 50)
-        print("\nEnhanced features:")
-        print("1. Semantic boundary detection")
-        print("2. Overlapping chunk creation")
-        print("3. Metadata extraction")
-        print("4. Enhanced search capabilities")
-        print("5. Snippet analytics")
         
-    except Exception as e:
-        print(f"❌ Error during demo: {e}")
-        print("Make sure Elasticsearch is running with: docker-compose up -d") 
+        # Get all snippets
+        all_snippets = es_client.search_snippets("", size=100)  # Get all snippets
+        
+        if not all_snippets:
+            print("❌ No snippets found.")
+            return
+        
+        # Analyze snippet types
+        type_counts = {}
+        plan_type_counts = {}
+        content_lengths = []
+        
+        for snippet in all_snippets:
+            snippet_type = snippet['snippet_type']
+            plan_type = snippet['plan_type']
+            content_length = len(snippet['content'])
+            
+            type_counts[snippet_type] = type_counts.get(snippet_type, 0) + 1
+            plan_type_counts[plan_type] = plan_type_counts.get(plan_type, 0) + 1
+            content_lengths.append(content_length)
+        
+        print(f"📈 Total snippets: {len(all_snippets)}")
+        print(f"📊 Average content length: {sum(content_lengths) / len(content_lengths):.0f} characters")
+        
+        print("\n📋 Snippet types:")
+        for snippet_type, count in sorted(type_counts.items()):
+            print(f"  - {snippet_type}: {count} snippets")
+        
+        print("\n🏢 Plan types:")
+        for plan_type, count in sorted(plan_type_counts.items()):
+            print(f"  - {plan_type}: {count} snippets")
+        
+        # Show content length distribution
+        print("\n📏 Content length distribution:")
+        length_ranges = [
+            (0, 500, "Short (0-500 chars)"),
+            (500, 1000, "Medium (500-1000 chars)"),
+            (1000, 2000, "Long (1000-2000 chars)"),
+            (2000, float('inf'), "Very Long (2000+ chars)")
+        ]
+        
+        for min_len, max_len, label in length_ranges:
+            count = sum(1 for length in content_lengths if min_len <= length < max_len)
+            percentage = (count / len(content_lengths)) * 100
+            print(f"  - {label}: {count} snippets ({percentage:.1f}%)")
+
+    if __name__ == "__main__":
+        try:
+            enhance_chunking()
+            create_snippet_analytics()
+            
+            print("\n" + "=" * 50)
+            print("✅ Advanced chunking demo completed!")
+            print("=" * 50)
+            print("\nEnhanced features:")
+            print("1. Semantic boundary detection")
+            print("2. Overlapping chunk creation")
+            print("3. Metadata extraction")
+            print("4. Enhanced search capabilities")
+            print("5. Snippet analytics")
+            
+        except Exception as e:
+            print(f"❌ Error during demo: {e}")
+            print("Make sure Elasticsearch is running with: docker-compose up -d") 
