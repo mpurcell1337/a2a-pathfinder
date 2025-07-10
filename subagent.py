@@ -28,14 +28,14 @@ def run_subagent(task_description, context=""):
     
     # Create the full task description
     full_task = f"""
-{context}
+    {context}
 
-## Your Specific Task:
-{task_description}
+    ## Your Specific Task:
+    {task_description}
 
-Please research this task thoroughly and provide a detailed report of your findings.
-"""
-    
+    Please research this task thoroughly and provide a detailed report of your findings.
+    """
+        
     # Initialize the conversation for the subagent
     messages = [
         {
