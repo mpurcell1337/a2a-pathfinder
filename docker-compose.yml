@@ -1,0 +1,57 @@
+# mpurcell1337 docker-compose.yml
+
+networks:
+  mpurcell1337-net:
+    driver: bridge
+
+volumes:
+  mpurcell1337-es-volume:
+    driver: local
+
+services:
+
+  # Elasticsearch / Company Knowledge Base
+  elasticsearch:
+    restart: always
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.13.1
+    container_name: elasticsearch
+    ports:
+      - 9200:9200
+    environment:
+      - discovery.type=single-node
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms3g -Xmx3g"
+      - xpack.security.enabled=false
+      - action.destructive_requires_name=false
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    networks:
+      - mpurcell1337-net
+    cpu_shares: 2048 
+    logging:
+      options:
+        max-size: 1m
+        max-file: "5"
+    volumes:
+      - mpurcell1337-es-volume:/usr/share/elasticsearch/data
+      
+  # Kibana
+  kibana:
+    restart: always
+    image: docker.elastic.co/kibana/kibana:8.13.1
+    container_name: kibana
+    depends_on:
+      - elasticsearch
+    ports:
+      - 5601:5601
+    environment:
+      - xpack.security.enabled=false
+      - xpack.monitoring.enabled=false
+    networks:
+      - mpurcell1337-net
+    logging:
+      options:
+        max-size: 1m
+        max-file: "5"
