@@ -3,6 +3,8 @@
 ## UV
 - To enter the virtual environment associated with this project:
     - `source .venv/bin/activate`
+- To exit the virtual environment:
+    - `deactivate`
 - To add a new dependency:
     - `uv add elasicsearch`
     - If no package satisfies the requirement:
