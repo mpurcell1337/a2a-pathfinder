@@ -55,7 +55,7 @@ def search_chunks(query, chunk_type=None, plan_type=None, size=5):
 
 def main():
     parser = argparse.ArgumentParser(description="Search chunks in Elasticsearch")
-    parser.add_argument("query", help="Search query")
+    parser.add_argument("--query", "-q", help="Search query")
     parser.add_argument("--chunk-type", "-t", help="Filter by chunk type (e.g., subagent_output, strategic_plan, executive_summary)")
     parser.add_argument("--plan-type", "-p", help="Filter by plan type")
     parser.add_argument("--limit", "-l", type=int, default=5, help="Number of results to return")
@@ -78,13 +78,13 @@ if __name__ == "__main__":
     main()
 
 # Basic search
-# python3 ./scripts/chunk_search.py "market research"
+# python3 ./scripts/chunk_search.py --query "market research"
 
 # Search with chunk type filter
-# python3 ./scripts/chunk_search.py "strategy" --chunk-type strategic_plan
+# python3 ./scripts/chunk_search.py --query "strategy" --chunk-type strategic_plan
 
 # Search with plan type filter
-# python3 ./scripts/chunk_search.py "AI art" --plan-type ai_art_company
+# python3 ./scripts/chunk_search.py --query "AI art" --plan-type ai_art_company
 
 # Search with custom limit
-# python3 ./scripts/chunk_search.py "technology" --limit 10 --plan-type ai_art_company
+# python3 ./scripts/chunk_search.py --query "technology" --limit 10 --plan-type ai_art_company
