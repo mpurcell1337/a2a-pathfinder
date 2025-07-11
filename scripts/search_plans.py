@@ -79,6 +79,6 @@ if __name__ == "__main__":
     main() 
 
 # Example usage:
-# python3 ./scripts/search_plans.py --query "marketing" --limit 3
+# python3 ./scripts/search_plans.py --query "swot research" --limit 3
 # python3 ./scripts/search_plans.py --list
 # python3 ./scripts/search_plans.py --id 123

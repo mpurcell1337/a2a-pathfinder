@@ -250,6 +250,8 @@ class ElasticsearchClient:
         
         # Generate embedding for search query
         query_embedding = self.generate_embedding(query)
+
+        print(f"Length of Query embedding: {len(query_embedding)}")
         
         # Build query
         must_clauses = [
@@ -297,7 +299,7 @@ class ElasticsearchClient:
                 'chunk_id': source['chunk_id'],
                 'plan_id': source['plan_id'],
                 'score': hit['_score'],
-                'content': source['content'][:500] + "..." if len(source['content']) > 500 else source['content'],
+                'content': source['content'],
                 'chunk_type': source['chunk_type'],
                 'subagent_id': source.get('subagent_id'),
                 'task_description': source.get('task_description'),
