@@ -46,10 +46,8 @@ def main():
                 print(f"Type: {plan['plan_type']}")
                 print(f"Created: {plan['created_at']}")
                 print(f"User Query: {plan['user_query']}")
-                print("\n📊 Strategic Plan:")
-                print(plan['strategic_plan'])
-                print("\n📋 Executive Summary:")
-                print(plan['executive_summary'])
+                print("\n📊 Complete Plan Content:")
+                print(plan['content'])
             else:
                 print(f"❌ Plan with ID {args.id} not found")
         
@@ -69,10 +67,8 @@ def main():
                 print(f"   Created: {result['created_at']}")
                 print(f"   Original Query: {result['user_query']}")
                 print(f"   ID: {result['id']}")
-                print("\n   Strategic Plan Preview:")
-                print(f"   {result['strategic_plan']}")
-                print("\n   Executive Summary Preview:")
-                print(f"   {result['executive_summary']}")
+                print("\n   Content Preview:")
+                print(f"   {result['content']}")
                 print("-" * 60)
     
     except Exception as e:

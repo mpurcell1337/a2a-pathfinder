@@ -22,7 +22,13 @@ lead_agent = lead_agent.replace("{{.CurrentDate}}", datetime.today().strftime("%
 
 # Define the user's query
 ORGANIZATION_NAME = "AI Art Company"
+ORGANIZATION_NAME_SANITIZED = ORGANIZATION_NAME.replace(" ", "_").lower()
 ORGANIZATION_QUERY = f"We are going to create an {ORGANIZATION_NAME} that will be used to create massive amounts of art. We need to create a plan to do this."
+
+# Create outputs directory if it doesn't exist
+import os
+output_dir = f"outputs/{ORGANIZATION_NAME_SANITIZED}"
+os.makedirs(output_dir, exist_ok=True)
 
 # Initialize the conversation
 messages = [
@@ -47,7 +53,7 @@ print("Assistant (Strategic Plan):\n", strategic_plan)
 messages.append({"role": "assistant", "content": strategic_plan})
 
 # Save strategic plan to file
-with open("outputs/strategic_plan.md", "w") as f:
+with open(f"{output_dir}/strategic_plan.md", "w") as f:
     f.write(f"# Strategic Plan\n\n{strategic_plan}")
 
 # Parse the strategic plan to extract subagent tasks
@@ -111,7 +117,7 @@ subagent_reports = "\n\n".join(subagent_results)
 print("\nAll subagents completed!")
 
 # Save subagent reports to file
-with open("outputs/subagent_reports.md", "w") as f:
+with open(f"{output_dir}/subagent_reports.md", "w") as f:
     f.write(f"# Subagent Reports\n\n{subagent_reports}")
 
 # Add the subagent results to the conversation for synthesis
@@ -133,11 +139,11 @@ executive_summary = response.choices[0].message.content
 print("\nAssistant (Executive Summary):\n", executive_summary)
 
 # Save executive summary to file
-with open("outputs/executive_summary.md", "w") as f:
+with open(f"{output_dir}/executive_summary.md", "w") as f:
     f.write(f"# Executive Summary\n\n{executive_summary}")
 
 # Create a comprehensive output file with all results
-with open("outputs/complete_design_output.md", "w") as f:
+with open(f"{output_dir}/complete_design_output.md", "w") as f:
     f.write(f"""# Complete Design Output
 
 ## Strategic Plan
@@ -155,10 +161,10 @@ with open("outputs/complete_design_output.md", "w") as f:
 """)
 
 print(f"\nOutputs saved to:")
-print(f"- outputs/strategic_plan.md")
-print(f"- outputs/subagent_reports.md") 
-print(f"- outputs/executive_summary.md")
-print(f"- outputs/complete_design_output.md")
+print(f"- {output_dir}/strategic_plan.md")
+print(f"- {output_dir}/subagent_reports.md") 
+print(f"- {output_dir}/executive_summary.md")
+print(f"- {output_dir}/complete_design_output.md")
 
 # Store the complete plan in Elasticsearch with individual chunking embeddings
 print("\nStoring plan with chunking in Elasticsearch...")

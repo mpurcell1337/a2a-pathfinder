@@ -27,10 +27,7 @@ class ElasticsearchClient:
                     },
                     "plan_type": {"type": "keyword"},
                     "user_query": {"type": "text"},
-                    "created_at": {"type": "date"},
-                    "strategic_plan": {"type": "text"},
-                    "subagent_reports": {"type": "text"},
-                    "executive_summary": {"type": "text"}
+                    "created_at": {"type": "date"}
                 }
             },
             "settings": {
@@ -142,7 +139,12 @@ class ElasticsearchClient:
                                 subagent_reports: str,
                                 executive_summary: str,
                                 plan_type: str = "ai_art_company") -> str:
-        """Store a complete plan with individual chunking embeddings."""
+        """Store a complete plan with individual chunking embeddings.
+        
+        This method stores the combined content in the main plan document and creates
+        individual snippets for each section (strategic plan, subagent reports, executive summary).
+        All content is standardized using the 'content' field to avoid duplication.
+        """
         
         # First, store the main plan
         combined_content = f"{strategic_plan}\n\n{subagent_reports}\n\n{executive_summary}"
@@ -154,10 +156,7 @@ class ElasticsearchClient:
             "content_vector": embedding,
             "plan_type": plan_type,
             "user_query": user_query,
-            "created_at": datetime.now().isoformat(),
-            "strategic_plan": strategic_plan,
-            "subagent_reports": subagent_reports,
-            "executive_summary": executive_summary
+            "created_at": datetime.now().isoformat()
         }
         
         # Store main plan
@@ -364,8 +363,7 @@ class ElasticsearchClient:
                 'plan_type': hit['_source']['plan_type'],
                 'created_at': hit['_source']['created_at'],
                 'user_query': hit['_source']['user_query'],
-                'strategic_plan': hit['_source']['strategic_plan'][:500] + "..." if len(hit['_source']['strategic_plan']) > 500 else hit['_source']['strategic_plan'],
-                'executive_summary': hit['_source']['executive_summary'][:500] + "..." if len(hit['_source']['executive_summary']) > 500 else hit['_source']['executive_summary']
+                'content': hit['_source']['content'][:500] + "..." if len(hit['_source']['content']) > 500 else hit['_source']['content']
             })
         
         return results

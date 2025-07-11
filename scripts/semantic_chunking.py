@@ -164,8 +164,8 @@ class AdvancedSnippitizer:
         print(f"📋 Processing plan: {latest_plan['title']}")
         
         # Process strategic plan with advanced chunking
-        strategic_plan = plan_data['strategic_plan']
-        print(f"\n📝 Strategic Plan ({len(strategic_plan)} characters)")
+        strategic_plan = plan_data['content']
+        print(f"\n📝 Complete Plan Content ({len(strategic_plan)} characters)")
         
         # Create semantic chunks
         semantic_chunks = snippitizer.split_by_semantic_boundaries(strategic_plan)
