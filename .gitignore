@@ -5,6 +5,7 @@ build/
 dist/
 wheels/
 *.egg-info
+deprecated/
 
 # Virtual environments
 .venv

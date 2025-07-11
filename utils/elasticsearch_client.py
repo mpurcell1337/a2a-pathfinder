@@ -12,7 +12,7 @@ class ElasticsearchClient:
         self.es = Elasticsearch(f"http://{host}:{port}")
         self.model = SentenceTransformer('all-MiniLM-L6-v2')  # Lightweight model for embeddings
         self.index_name = "ai_agents"
-        self.snippets_index_name = "ai_subagents"
+        self.chunks_index_name = "ai_subagents"
         
     def create_index(self):
         """Create the index with proper mapping for embeddings."""
@@ -20,7 +20,7 @@ class ElasticsearchClient:
             "mappings": {
                 "properties": {
                     "title": {"type": "text"},
-                    "content": {"type": "text"},
+                    "content": {"type": "text", "index": False},
                     "content_vector": {
                         "type": "dense_vector",
                         "dims": 384  # Dimension for all-MiniLM-L6-v2
@@ -36,17 +36,17 @@ class ElasticsearchClient:
             }
         }
         
-        snippets_mapping = {
+        chunks_mapping = {
             "mappings": {
                 "properties": {
-                    "snippet_id": {"type": "keyword"},
+                    "chunk_id": {"type": "keyword"},
                     "plan_id": {"type": "keyword"},
-                    "content": {"type": "text"},
+                    "content": {"type": "text", "index": False},
                     "content_vector": {
                         "type": "dense_vector",
                         "dims": 384
                     },
-                    "snippet_type": {"type": "keyword"},  # "subagent_output", "orchestration_output", "strategic_plan", "executive_summary"
+                    "chunk_type": {"type": "keyword"},  # "subagent_output", "orchestration_output", "strategic_plan", "executive_summary"
                     "subagent_id": {"type": "keyword"},  # For subagent outputs
                     "task_description": {"type": "text"},  # Original task for subagent
                     "metadata": {"type": "object"},  # Additional metadata
@@ -68,12 +68,12 @@ class ElasticsearchClient:
         else:
             print(f"Index {self.index_name} already exists")
             
-        # Create snippets index
-        if not self.es.indices.exists(index=self.snippets_index_name):
-            self.es.indices.create(index=self.snippets_index_name, mappings=snippets_mapping["mappings"], settings=snippets_mapping["settings"])
-            print(f"Created index: {self.snippets_index_name}")
+        # Create chunks index
+        if not self.es.indices.exists(index=self.chunks_index_name):
+            self.es.indices.create(index=self.chunks_index_name, mappings=chunks_mapping["mappings"], settings=chunks_mapping["settings"])
+            print(f"Created index: {self.chunks_index_name}")
         else:
-            print(f"Index {self.snippets_index_name} already exists")
+            print(f"Index {self.chunks_index_name} already exists")
     
     def generate_embedding(self, text: str) -> List[float]:
         """Generate embedding for given text."""
@@ -98,27 +98,27 @@ class ElasticsearchClient:
         else:
             return "general_research"
     
-    def store_snippet(self, 
+    def store_chunk(self, 
                      plan_id: str,
                      content: str,
-                     snippet_type: str,
+                     chunk_type: str,
                      user_query: str,
                      plan_type: str,
                      subagent_id: Optional[str] = None,
                      task_description: Optional[str] = None,
                      metadata: Optional[Dict] = None) -> str:
-        """Store an individual snippet with its embedding."""
+        """Store an individual chunk with its embedding."""
         
-        # Generate embedding for the snippet
+        # Generate embedding for the chunk
         embedding = self.generate_embedding(content)
         
-        # Create snippet document
+        # Create chunk document
         doc = {
-            "snippet_id": str(uuid.uuid4()),
+            "chunk_id": str(uuid.uuid4()),
             "plan_id": plan_id,
             "content": content,
             "content_vector": embedding,
-            "snippet_type": snippet_type,
+            "chunk_type": chunk_type,
             "subagent_id": subagent_id,
             "task_description": task_description,
             "metadata": metadata or {},
@@ -128,10 +128,10 @@ class ElasticsearchClient:
         }
         
         # Store in Elasticsearch
-        response = self.es.index(index=self.snippets_index_name, document=doc)
-        snippet_id = response['_id']
-        print(f"Stored snippet with ID: {snippet_id}")
-        return snippet_id
+        response = self.es.index(index=self.chunks_index_name, document=doc)
+        chunk_id = response['_id']
+        print(f"Stored chunk with ID: {chunk_id}")
+        return chunk_id
     
     def store_plan_with_chunking(self, 
                                 user_query: str,
@@ -142,7 +142,7 @@ class ElasticsearchClient:
         """Store a complete plan with individual chunking embeddings.
         
         This method stores the combined content in the main plan document and creates
-        individual snippets for each section (strategic plan, subagent reports, executive summary).
+        individual chunks for each section (strategic plan, subagent reports, executive summary).
         All content is standardized using the 'content' field to avoid duplication.
         """
         
@@ -165,10 +165,10 @@ class ElasticsearchClient:
         print(f"Stored main plan with ID: {plan_id}")
         
         # Store strategic plan as chunk
-        self.store_snippet(
+        self.store_chunk(
             plan_id=plan_id,
             content=strategic_plan,
-            snippet_type="strategic_plan",
+            chunk_type="strategic_plan",
             user_query=user_query,
             plan_type=plan_type,
             metadata={
@@ -199,10 +199,10 @@ class ElasticsearchClient:
                 content = section[content_start:].strip()
                 
                 if content:
-                    self.store_snippet(
+                    self.store_chunk(
                         plan_id=plan_id,
                         content=content,
-                        snippet_type="subagent_output",
+                        chunk_type="subagent_output",
                         user_query=user_query,
                         plan_type=plan_type,
                         subagent_id=f"subagent_{i}",
@@ -223,10 +223,10 @@ class ElasticsearchClient:
                     print(f"  - Stored subagent {i} chunk")
         
         # Store executive summary as chunk
-        self.store_snippet(
+        self.store_chunk(
             plan_id=plan_id,
             content=executive_summary,
-            snippet_type="executive_summary",
+            chunk_type="executive_summary",
             user_query=user_query,
             plan_type=plan_type,
             metadata={
@@ -244,9 +244,9 @@ class ElasticsearchClient:
         
         return plan_id
     
-    def search_snippets(self, query: str, snippet_type: Optional[str] = None, 
+    def search_chunks(self, query: str, chunk_type: Optional[str] = None, 
                        plan_type: Optional[str] = None, size: int = 10) -> List[Dict[str, Any]]:
-        """Search snippets using semantic similarity with optional filters."""
+        """Search chunks using semantic similarity with optional filters."""
         
         # Generate embedding for search query
         query_embedding = self.generate_embedding(query)
@@ -266,8 +266,8 @@ class ElasticsearchClient:
         
         # Add filters if specified
         filter_clauses = []
-        if snippet_type:
-            filter_clauses.append({"term": {"snippet_type": snippet_type}})
+        if chunk_type:
+            filter_clauses.append({"term": {"chunk_type": chunk_type}})
         if plan_type:
             filter_clauses.append({"term": {"plan_type": plan_type}})
         
@@ -287,18 +287,18 @@ class ElasticsearchClient:
                 "size": size
             }
         
-        response = self.es.search(index=self.snippets_index_name, body=search_body)
+        response = self.es.search(index=self.chunks_index_name, body=search_body)
         
         results = []
         for hit in response['hits']['hits']:
             source = hit['_source']
             results.append({
                 'id': hit['_id'],
-                'snippet_id': source['snippet_id'],
+                'chunk_id': source['chunk_id'],
                 'plan_id': source['plan_id'],
                 'score': hit['_score'],
                 'content': source['content'][:500] + "..." if len(source['content']) > 500 else source['content'],
-                'snippet_type': source['snippet_type'],
+                'chunk_type': source['chunk_type'],
                 'subagent_id': source.get('subagent_id'),
                 'task_description': source.get('task_description'),
                 'user_query': source['user_query'],
@@ -309,22 +309,22 @@ class ElasticsearchClient:
         
         return results
     
-    def get_snippets_by_plan(self, plan_id: str) -> List[Dict[str, Any]]:
-        """Get all snippets for a specific plan."""
+    def get_chunks_by_plan(self, plan_id: str) -> List[Dict[str, Any]]:
+        """Get all chunks for a specific plan."""
         search_body = {
             "query": {"term": {"plan_id": plan_id}},
             "sort": [{"created_at": {"order": "desc"}}]
         }
         
-        response = self.es.search(index=self.snippets_index_name, body=search_body)
+        response = self.es.search(index=self.chunks_index_name, body=search_body)
         
         results = []
         for hit in response['hits']['hits']:
             source = hit['_source']
             results.append({
-                'snippet_id': source['snippet_id'],
+                'chunk_id': source['chunk_id'],
                 'content': source['content'],
-                'snippet_type': source['snippet_type'],
+                'chunk_type': source['chunk_type'],
                 'subagent_id': source.get('subagent_id'),
                 'task_description': source.get('task_description'),
                 'metadata': source.get('metadata', {})
