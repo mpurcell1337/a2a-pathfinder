@@ -78,7 +78,7 @@ if __name__ == "__main__":
     main()
 
 # Basic search
-# python3 ./scripts/chunk_search.py --query "market research"
+# python3 ./scripts/chunk_search.py --query "market research" --limit 1
 
 # Search with chunk type filter
 # python3 ./scripts/chunk_search.py --query "strategy" --chunk-type strategic_plan
