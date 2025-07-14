@@ -114,85 +114,11 @@ ELASTICSEARCH_HOST=localhost
 ELASTICSEARCH_PORT=9200
 ```
 
-### Chunking Parameters
-```python
-# Configure chunking in semantic_chunking.py
-chunk_size=1000,  # Target chunk size in characters
-overlap=200       # Overlap between chunks
-```
-
-## Usage Examples
-
-### Basic Chunk Search
-```python
-from utils.elasticsearch_client import ElasticsearchClient
-
-es_client = ElasticsearchClient()
-
-# Search for market research chunks
-results = es_client.search_chunks(
-    query="market analysis competition",
-    chunk_type="subagent_output",
-    size=5
-)
-
-for result in results:
-    print(f"Score: {result['score']}")
-    print(f"Content: {result['content'][:200]}...")
-```
-
-### Advanced Filtering
-```python
-# Filter by plan type and chunk type
-results = es_client.search_chunks(
-    query="AI art company strategy",
-    plan_type="ai_art_company",
-    chunk_type="strategic_plan"
-)
-```
-
-### Plan-Specific Retrieval
-```python
-# Get all chunks for a specific plan
-chunks = es_client.get_chunks_by_plan(plan_id)
-
-for chunk in chunks:
-    print(f"Type: {chunk['chunk_type']}")
-    print(f"Content: {chunk['content'][:100]}...")
-```
-
 ## Scripts
 
 ### Core Scripts
 - **`lead_orchestrater.py`** - Main orchestrator for multi-agent planning
 - **`scripts/chunk_search.py`** - Chunk search and retrieval demo
-- **`scripts/semantic_chunking.py`** - Advanced chunking features
-
-### Utility Scripts
-- **`scripts/example_search.py`** - Example search queries
-- **`scripts/search_plans.py`** - Plan search functionality
-
-## Monitoring & Analytics
-
-### Kibana Dashboard
-Access Kibana at `http://localhost:5601` to:
-- View Elasticsearch indices
-- Create custom dashboards
-- Analyze chunk distributions
-- Monitor search performance
-
-### Chunk Analytics
-```python
-# Get chunk statistics
-chunks = es_client.search_chunks("", size=100)
-print(f"Total chunks: {len(chunks)}")
-
-# Analyze by type
-type_counts = {}
-for chunk in chunks:
-    chunk_type = chunk['chunk_type']
-    type_counts[chunk_type] = type_counts.get(chunk_type, 0) + 1
-```
 
 ## Development
 
@@ -214,20 +140,7 @@ for chunk in chunks:
 3. **Index Creation**: Check that indices are created properly
 4. **Memory Usage**: Large documents may require chunking
 
-### Debug Commands
-```bash
-# Check Elasticsearch status
-curl http://localhost:9200/_cluster/health
-
-# List indices
-curl http://localhost:9200/_cat/indices
-
-# Check chunk count
-python -c "from utils.elasticsearch_client import ElasticsearchClient; es=ElasticsearchClient(); print(es.es.count(index='ai_subagents'))"
-```
-
 ## Contributing
-
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
@@ -237,6 +150,11 @@ python -c "from utils.elasticsearch_client import ElasticsearchClient; es=Elasti
 ## License
 
 This project is licensed under the MIT License - see the LICENSE file for details.
+
+## References
+
+- Anthropic
+    - https://github.com/anthropics/anthropic-cookbook/tree/main/patterns/agents/prompts
 
 
 
