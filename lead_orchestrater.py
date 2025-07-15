@@ -14,7 +14,7 @@ es_client = ElasticsearchClient()
 es_client.create_index()
 
 # Load the lead agent prompt from a markdown file (i.e. manager.md)
-with open("./prompts/manager-lead-agent.md", "r") as f:
+with open("./prompts/manager_lead_agent.md", "r") as f:
     lead_agent = f.read()
 
 # Replace the placeholder with today's date
