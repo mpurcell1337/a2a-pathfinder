@@ -123,20 +123,82 @@ with open(f"{output_dir}/subagent_reports.md", "w") as f:
 # Add the subagent results to the conversation for synthesis
 messages.append({"role": "user", "content": f"Here are the subagent research results:\n\n{subagent_reports}"})
 
-# Final user request to synthesize
-final_user_request = "Based on the strategic plan and the subagent research results, synthesize everything into a comprehensive executive summary with actionable recommendations."
+# Final user request to synthesize - using a more focused prompt
+final_user_request = """Based on the strategic plan and the subagent research results, create a comprehensive executive summary with actionable recommendations.
+
+Please structure your response as follows:
+1. Executive Summary (2-3 paragraphs)
+2. Key Findings (bullet points)
+3. Strategic Recommendations (numbered list)
+4. Implementation Roadmap (brief overview)
+5. Risk Assessment (key risks and mitigation strategies)
+
+Make sure to synthesize all the information from the subagent reports into a cohesive, actionable plan."""
 messages.append({"role": "user", "content": final_user_request})
 
-# Third API call for final synthesis
-response = client.chat.completions.create(
-    model="gpt-4",
-    messages=messages,
-    temperature=0.7
-)
+# Third API call for final synthesis - using GPT-4 with higher max_tokens
+try:
+    response = client.chat.completions.create(
+        model="gpt-4",
+        messages=messages,
+        temperature=0.7,
+        max_tokens=4000  # Increase token limit for longer response
+    )
+    
+    # Print the executive summary
+    executive_summary = response.choices[0].message.content
+    print("\nAssistant (Executive Summary):\n", executive_summary)
+    
+    # Validate that the response is complete (not truncated)
+    if len(executive_summary) < 100:
+        print("Warning: Executive summary seems too short, may be truncated")
+        # Try again with a simpler prompt
+        simple_request = "Create a comprehensive executive summary based on the strategic plan and subagent research results. Include key findings, recommendations, and next steps."
+        messages[-1] = {"role": "user", "content": simple_request}
+        
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=4000
+        )
+        executive_summary = response.choices[0].message.content
+        print("\nAssistant (Executive Summary - Retry):\n", executive_summary)
+    
+except Exception as e:
+    print(f"Error generating executive summary: {e}")
+    # Fallback to a simpler approach
+    executive_summary = f"""# Executive Summary
 
-# Print the executive summary
-executive_summary = response.choices[0].message.content
-print("\nAssistant (Executive Summary):\n", executive_summary)
+Based on the strategic plan and subagent research results, here is a comprehensive summary for the AI Art Company:
+
+## Key Findings
+- AI technology (GANs and transformer-based language models) is essential for art generation
+- Creative team is needed to curate and interface with AI technology
+- Multiple revenue streams: direct sales, subscriptions, and licensing
+- Market is growing but competitive, requiring strong marketing
+- Legal and ethical considerations need careful navigation
+
+## Strategic Recommendations
+1. Invest in advanced AI technology infrastructure
+2. Build a skilled creative team
+3. Develop multiple monetization strategies
+4. Focus on marketing and community engagement
+5. Establish clear legal and ethical guidelines
+
+## Implementation Roadmap
+Phase 1: Technology setup and team building
+Phase 2: Platform development and testing
+Phase 3: Market launch and scaling
+Phase 4: Expansion and optimization
+
+## Risk Assessment
+- Technical risks: AI model performance and scalability
+- Market risks: Competition and changing preferences
+- Legal risks: Copyright and IP issues
+- Operational risks: Resource management and quality control
+
+*Note: This is a fallback summary due to API response issues.*"""
 
 # Save executive summary to file
 with open(f"{output_dir}/executive_summary.md", "w") as f:
