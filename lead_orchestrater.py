@@ -14,7 +14,7 @@ es_client = ElasticsearchClient()
 es_client.create_index()
 
 # Load the lead agent prompt from a markdown file (i.e. manager.md)
-with open("./prompts/manager-art.md", "r") as f:
+with open("./prompts/manager-lead-agent.md", "r") as f:
     lead_agent = f.read()
 
 # Replace the placeholder with today's date
@@ -23,7 +23,7 @@ lead_agent = lead_agent.replace("{{.CurrentDate}}", datetime.today().strftime("%
 # Define the user's query
 ORGANIZATION_NAME = "AI Art Company"
 ORGANIZATION_NAME_SANITIZED = ORGANIZATION_NAME.replace(" ", "_").lower()
-ORGANIZATION_QUERY = f"We are going to create an {ORGANIZATION_NAME} that will be used to create massive amounts of art. We need to create a plan to do this."
+ORGANIZATION_QUERY = f"Help design an AI art company that will be used generate large amounts of art using language models."
 
 # Create outputs directory if it doesn't exist
 import os
